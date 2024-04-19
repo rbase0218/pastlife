@@ -23,8 +23,10 @@ public class DialogueSystem : MonoBehaviour
     private DialogueState _dialogueState;
 
     [SerializeField] private float textPrintSpeed = .0f;
+    [SerializeField] private float dialogueChangeSpeed = .0f;
+    
+    [SerializeField]
     private int _currentIndex = 0;
-    private string _exampleString = "나는 어렸을 적에 무언가를 아니 아니 아니 이게 맞는지 모르겠지만, 어쨌든 내가 코딩을 해~";
     
     [SerializeField] private TMP_Text dialogueText;
     [SerializeField] private TMP_Text dialogueName;
@@ -42,10 +44,14 @@ public class DialogueSystem : MonoBehaviour
         //     Debug.Log($"Dialogue Name이 존재하지 않음.");
         //     Debug.Break();
         // }
+
+        dialogues = new List<Dialogue>()
+        {
+            new Dialogue("김철수", "안녕하세요?"),
+            new Dialogue("김철수", "이것이 얼마나 잘못된 생각인지를.."),
+            new Dialogue("김철수", "이렇게 하면 다형성까지 붙잡을 수 있어요!")
+        };
         
-        dialogues = new List<Dialogue>();
-        
-        dialogues.Add(new Dialogue("김철수", _exampleString));
         SetDialogueState(DialogueState.Init);
     }
 
@@ -59,20 +65,25 @@ public class DialogueSystem : MonoBehaviour
         StartDialogue(0);
     }
 
-    public void StartDialogue(int index)
-    {
+    public void StartDialogue(int index, bool isCoroutine = true) {
         if (_dialogueState == DialogueState.Playing) return;
+        if (index >= dialogues.Count) return;
+        
         SetDialogueState(DialogueState.Playing);
         _currentIndex = index;
         
         SetCurrentDialogue();
-        WriteText();
+        
+        if(isCoroutine)
+            WriteText();
     }
 
     private void SetCurrentDialogue()
     {
         _currentDialogue = dialogues[_currentIndex];
         NextDialogue();
+        
+        SetText();
     }
 
     private void NextDialogue()
@@ -82,39 +93,49 @@ public class DialogueSystem : MonoBehaviour
             return;
         }
 
-        _nextDialogue = (_currentIndex < dialogues.Count) ? dialogues[_currentIndex + 1] : null;
+        _nextDialogue = (_currentIndex < dialogues.Count) ? dialogues[_currentIndex] : null;
+    }
+
+    private void SkipText()
+    {
+        if(_dialogueState == DialogueState.Playing) StopCoroutine("StartText");
+        dialogueText.text = textWriter.GetText();
+    }
+
+    private void SetText()
+    {
+        textWriter.SetText(_currentDialogue.text);
     }
 
     private void WriteText()
     {
-        textWriter.SetText(_currentDialogue.text);
         StartCoroutine("StartText");
     }
-
+    
     private IEnumerator StartText()
     {
-        string copyText = "";
+        string copyText;
 
-        while (copyText != null)
+        for (int i = 0; i < dialogues.Count; ++i)
         {
-            dialogueText.text = copyText;
-            yield return new WaitForSeconds(textPrintSpeed);
-            copyText = textWriter.GetCopyText();
+            copyText = "";
+            
+            while (copyText != null)
+            {
+                dialogueText.text = copyText;
+                yield return new WaitForSeconds(textPrintSpeed);
+                copyText = textWriter.GetCopyText();
+            }
+
+            SetDialogueState(DialogueState.PlayEnd);
+            StartDialogue(_currentIndex + 1, false);
+
+            yield return new WaitForSeconds(dialogueChangeSpeed);
         }
         
+        Debug.Log("Dialogue ENDED");
+        SetDialogueState(DialogueState.End);
         StopCoroutine("StartText");
-        SetDialogueState(DialogueState.PlayEnd);
-
-        NextDialogue();
-
-        if (_nextDialogue == null)
-        {
-            SetDialogueState(DialogueState.End);
-            StopCoroutine("StartText");
-            yield break;
-        }
-
-        StartCoroutine("StartText");
     }
     
     private void SetDialogueState(DialogueState state)

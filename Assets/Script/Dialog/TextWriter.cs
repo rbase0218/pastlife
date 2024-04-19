@@ -26,6 +26,11 @@ public class TextWriter : MonoBehaviour
         return _copyText;
     }
 
+    public string GetText()
+    {
+        return _originText;
+    }
+
     private void Init()
     {
         _copyText = "";
