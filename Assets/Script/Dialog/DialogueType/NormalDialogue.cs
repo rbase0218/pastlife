@@ -2,17 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NormalDialogue : MonoBehaviour
+[System.Serializable]
+public class NormalDialogue : Dialogue
 {
-    // Start is called before the first frame update
-    void Start()
+    public NormalDialogue(int key, List<string> text) : base(key, text)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

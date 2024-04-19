@@ -9,11 +9,12 @@ public class TextWriter : MonoBehaviour
 
     private int _textIndex = 0;
 
-    public void SetText(string text)
+    public int SetText(string text)
     {
         _originText = text;
-
         Init();
+
+        return (text == null) ? 0 : 1;
     }
 
     public string GetCopyText()
