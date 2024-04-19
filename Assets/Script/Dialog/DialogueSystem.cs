@@ -9,7 +9,6 @@ public class DialogueSystem : MonoBehaviour
     private enum DialogueState
     {
         Init,
-        Wait,
         Playing,
         PlayEnd,
         End
@@ -133,7 +132,6 @@ public class DialogueSystem : MonoBehaviour
             yield return new WaitForSeconds(dialogueChangeSpeed);
         }
         
-        Debug.Log("Dialogue ENDED");
         SetDialogueState(DialogueState.End);
         StopCoroutine("StartText");
     }
